@@ -4,5 +4,3 @@
     engine.Init();
     engine.Run();
 }
-
-onload = main;
