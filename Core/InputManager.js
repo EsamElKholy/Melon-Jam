@@ -1,4 +1,3 @@
-
 var InputManager = function(idName)
 {
 	InputManager.idName = idName;
@@ -55,7 +54,10 @@ var InputManager = function(idName)
 
     InputManager.getMousePos = function()
 	{
-        return [InputManager.mousePos[0], InputManager.mousePos[1]];
+		var c = document.getElementById(InputManager.idName);
+		var x = InputManager.mousePos[0] - c.clientWidth / 2.0;
+		var y = c.clientHeight / 2.0 - InputManager.mousePos[1];
+        return [x, y];
 	}	
 }
 
