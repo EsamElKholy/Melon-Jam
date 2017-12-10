@@ -31,6 +31,7 @@
             camera, scene, renderer, geometry, material, mesh;
 
     var objects = [];
+    var planetMass = 100000;
 
     var initCannon = function() 
     {
@@ -80,11 +81,11 @@
         body3.position.x = 4 * 50;
         body3.position.y = 2 * 50;
 
-        body.angularVelocity.set(0,10,0);
-        body.angularDamping = 0.5;
-        body.customGrav = 200;
-        body2.customGrav = 300;
-        body3.customGrav = 250;
+       // body.angularVelocity.set(0,10,0);
+       // body.angularDamping = 0.5;
+        body.customGrav = 50;
+        body2.customGrav = 100;
+        body3.customGrav = 80;
         //body1.linearDamping = 0;
 
         world.addBody(body);
@@ -179,19 +180,29 @@
         for (let index = 0; index < objects.length; index++) 
         {
             var element = objects[index];
-            
+           
             var v = body.position.vsub(element.body.position);
+            var d = body.position.distanceTo(element.body.position);
             v.normalize();
 
             var v1 = body2.position.vsub(element.body.position);
+            var d1 = body2.position.distanceTo(element.body.position);
             v1.normalize();
 
             var v2 = body3.position.vsub(element.body.position);
+            var d2 = body3.position.distanceTo(element.body.position);
             v2.normalize();     
             
-            element.body.force = element.body.force.vadd(v.mult(body.customGrav));
-            element.body.force = element.body.force.vadd(v1.mult(body2.customGrav));
-            element.body.force = element.body.force.vadd(v2.mult(body3.customGrav));                
+            var f1 = (body.customGrav * planetMass * element.body.mass) / (d * d);
+            var f2 = (body2.customGrav * planetMass * element.body.mass) / (d1 * d1);
+            var f3 = (body3.customGrav * planetMass * element.body.mass) / (d2 * d2);
+
+            var force = new CANNON.Vec3(0, 0, 0);
+            force = force.vadd(v.mult(f1));
+            force = force.vadd(v1.mult(f2));
+            force = force.vadd(v2.mult(f3));
+
+            element.body.force = element.body.force.vadd(force);       
         }
 
         // Step the physics world
