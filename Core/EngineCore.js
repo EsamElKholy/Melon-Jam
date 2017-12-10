@@ -38,10 +38,12 @@
         world.gravity.set(0,0,0);
         world.broadphase = new CANNON.NaiveBroadphase();
         world.solver.iterations = 10;
-        shape = new CANNON.Sphere(new CANNON.Vec3(50, 50, 50));
+        //world.defaultContactMaterial.contactEquationStiffness = 1e6;
+       // world.defaultContactMaterial.contactEquationRelaxation = 10;
+        shape = new CANNON.Sphere(50);
         mass = 1;
         body = new CANNON.Body({
-            mass: 1
+            mass: 0
         });
 
         /*shape1 = new CANNON.Sphere(new CANNON.Vec3(0.1,0.1,0.1));
@@ -50,16 +52,16 @@
             mass: 1
         });*/
 
-        shape2 = new CANNON.Sphere(new CANNON.Vec3(50, 50, 50));
+        shape2 = new CANNON.Sphere(50);
         mass2 = 1;
         body2 = new CANNON.Body({
-            mass: 1
+            mass: 0
         });
 
-        shape3 = new CANNON.Sphere(new CANNON.Vec3(50, 50, 50));
+        shape3 = new CANNON.Sphere(50);
         mass3 = 1;
         body3 = new CANNON.Body({
-            mass: 1
+            mass: 0
         });
 
         body.addShape(shape);
@@ -67,15 +69,15 @@
         body2.addShape(shape2);
         body3.addShape(shape3);
 
-        body.position.y = -1;
+        body.position.y = -2 * 50;
 
         //body1.position.x = 0;
         //body1.position.y = 2;
 
-        body2.position.x = -3 * 50;
+        body2.position.x = -4 * 50;
         body2.position.y = 2 * 50;
 
-        body3.position.x = 3 * 50;
+        body3.position.x = 4 * 50;
         body3.position.y = 2 * 50;
 
         body.angularVelocity.set(0,10,0);
@@ -217,13 +219,14 @@
 
     var AddObject = function (pos)
     {
-        var s1 = new CANNON.Sphere(new CANNON.Vec3(10,10,10));
+        var s1 = new CANNON.Sphere(10);
         var m1 = 1;
         var b1 = new CANNON.Body({
             mass: 1
         });
 
         b1.addShape(s1);
+        b1.linearDamping = 0.1;
         b1.position = pos;
         b1.stopped = false;
         var g = new THREE.SphereGeometry( 10, 30, 30 );
