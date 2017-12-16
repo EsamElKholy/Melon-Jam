@@ -6,7 +6,6 @@
     this.Init = function ()
     {
         initThree();
-        initCannon();
         InputManager("canvas");
         runInputManager();
     }
@@ -27,72 +26,7 @@
         cancelAnimationFrame(MainLoopTimerID);
     }
 
-    var world, mass, body, shape, timeStep=1/60,
-            camera, scene, renderer, geometry, material, mesh;
-
-    var objects = [];
-    var planetMass = 100000;
-
-    var initCannon = function() 
-    {
-        world = new CANNON.World();
-        world.gravity.set(0,0,0);
-        world.broadphase = new CANNON.NaiveBroadphase();
-        world.solver.iterations = 10;
-        //world.defaultContactMaterial.contactEquationStiffness = 1e6;
-       // world.defaultContactMaterial.contactEquationRelaxation = 10;
-        shape = new CANNON.Sphere(50);
-        mass = 1;
-        body = new CANNON.Body({
-            mass: 0
-        });
-
-        /*shape1 = new CANNON.Sphere(new CANNON.Vec3(0.1,0.1,0.1));
-        mass1 = 1;
-        body1 = new CANNON.Body({
-            mass: 1
-        });*/
-
-        shape2 = new CANNON.Sphere(50);
-        mass2 = 1;
-        body2 = new CANNON.Body({
-            mass: 0
-        });
-
-        shape3 = new CANNON.Sphere(50);
-        mass3 = 1;
-        body3 = new CANNON.Body({
-            mass: 0
-        });
-
-        body.addShape(shape);
-        //body1.addShape(shape1);
-        body2.addShape(shape2);
-        body3.addShape(shape3);
-
-        body.position.y = -2 * 50;
-
-        //body1.position.x = 0;
-        //body1.position.y = 2;
-
-        body2.position.x = -4 * 50;
-        body2.position.y = 2 * 50;
-
-        body3.position.x = 4 * 50;
-        body3.position.y = 2 * 50;
-
-       // body.angularVelocity.set(0,10,0);
-       // body.angularDamping = 0.5;
-        body.customGrav = 50;
-        body2.customGrav = 100;
-        body3.customGrav = 80;
-        //body1.linearDamping = 0;
-
-        world.addBody(body);
-        //world.addBody(body1);
-        world.addBody(body2);
-        world.addBody(body3);
-    }
+    var timeStep=1/60, camera, scene, renderer, geometry, material, mesh;
 
     var initThree = function() 
     {
@@ -124,130 +58,12 @@
         material = new THREE.MeshStandardMaterial( { color: 0x00ffdd, wireframe: false } );
         mesh = new THREE.Mesh( geometry, material );
 
-       /* geometry1 = new THREE.SphereGeometry( 0.1, 30, 30 );
-        material1 = new THREE.MeshStandardMaterial( { color: 0x00ff00, wireframe: false } );
-        mesh1 = new THREE.Mesh( geometry1, material1 );*/
-
-       // mesh1.position.x = 0;
-
-        geometry2 = new THREE.SphereGeometry( 50, 30, 30 );
-        material2 = new THREE.MeshStandardMaterial( { color: 0x0000ff, wireframe: false } );
-        mesh2 = new THREE.Mesh( geometry2, material2 );
-
-        mesh2.position.x = -3;
-        mesh2.position.y = 2;
-
-        geometry3 = new THREE.SphereGeometry( 50, 30, 30 );
-        material3 = new THREE.MeshStandardMaterial( { color: 0xff0000, wireframe: false } );
-        mesh3 = new THREE.Mesh( geometry3, material3 );
-
-        mesh3.position.x = 3;
-        mesh3.position.y = 2;
-        
         scene.add( mesh );
-        //scene.add( mesh1 );
-        scene.add( mesh2 );
-        scene.add( mesh3 );
     }
     
     var animate = function() 
     {
-        updatePhysics();
         render();
-    }
-
-    var updatePhysics = function() 
-    {
-        if (InputManager.isKeyDown('KeyA'))
-        {
-            body.position.x -= 0.05;
-        }
-
-        if (InputManager.isKeyDown('KeyD'))
-        {
-            body.position.x += 0.05;
-        }
-
-        if (InputManager.isButtonUp(0))
-        {
-            let p = InputManager.getMousePos();
-            
-            let pos = new CANNON.Vec3(p[0], p[1], 0);
-            //console.log(pos)
-            AddObject(pos);
-        }       
-
-        for (let index = 0; index < objects.length; index++) 
-        {
-            var element = objects[index];
-           
-            var v = body.position.vsub(element.body.position);
-            var d = body.position.distanceTo(element.body.position);
-            v.normalize();
-
-            var v1 = body2.position.vsub(element.body.position);
-            var d1 = body2.position.distanceTo(element.body.position);
-            v1.normalize();
-
-            var v2 = body3.position.vsub(element.body.position);
-            var d2 = body3.position.distanceTo(element.body.position);
-            v2.normalize();     
-            
-            var f1 = (body.customGrav * planetMass * element.body.mass) / (d * d);
-            var f2 = (body2.customGrav * planetMass * element.body.mass) / (d1 * d1);
-            var f3 = (body3.customGrav * planetMass * element.body.mass) / (d2 * d2);
-
-            var force = new CANNON.Vec3(0, 0, 0);
-            force = force.vadd(v.mult(f1));
-            force = force.vadd(v1.mult(f2));
-            force = force.vadd(v2.mult(f3));
-
-            element.body.force = element.body.force.vadd(force);       
-        }
-
-        // Step the physics world
-        world.step(Delta);
-        // Copy coordinates from Cannon.js to Three.js
-        mesh.position.copy(body.position);
-        mesh.quaternion.copy(body.quaternion);
-
-        for (let index = 0; index < objects.length; index++) 
-        {
-            var element = objects[index];
-            
-            element.mesh.position.copy(element.body.position);
-            element.mesh.quaternion.copy(element.body.quaternion);
-        }
-        
-        mesh2.position.copy(body2.position);
-        mesh2.quaternion.copy(body2.quaternion);
-
-        mesh3.position.copy(body3.position);
-        mesh3.quaternion.copy(body3.quaternion);
-
-        //console.log(InputManager.getMousePos())
-    }
-
-    var AddObject = function (pos)
-    {
-        var s1 = new CANNON.Sphere(10);
-        var m1 = 1;
-        var b1 = new CANNON.Body({
-            mass: 1
-        });
-
-        b1.addShape(s1);
-        b1.linearDamping = 0.1;
-        b1.position = pos;
-        b1.stopped = false;
-        var g = new THREE.SphereGeometry( 10, 30, 30 );
-        var mat = new THREE.MeshStandardMaterial( { color: 0x00ff00, wireframe: false } );
-        var m = new THREE.Mesh( g, mat );
-
-        world.addBody(b1);
-        scene.add( m );
-
-        objects.push({body: b1, mesh: m});
     }
 
     var render = function() 
