@@ -8,6 +8,7 @@ var InputManager = function(idName)
     InputManager.keyDown = {};
 
 	InputManager.mousePos = [0, 0];
+    InputManager.mousePosNDC = [0, 0];
 	InputManager.mouseWheel = [0, 0, 0];
 	InputManager.mousePosOffset = [0, 0, 0];
 	InputManager.mouseMoved = false;
@@ -129,32 +130,4 @@ function runInputManager()
     document.getElementById(InputManager.idName).addEventListener("wheel", wheelEvent);
 
     document.getElementById(InputManager.idName).addEventListener("mousemove", mouseMoveEvent);
-}
-
-var timer;
-
-function MainLoop()
-{
-	if (inputManager.isKeyDown('KeyA'))
-	{
-		console.log("A is down");
-	}
-
-	if (inputManager.isButtonDown(0))
-	{
-		console.log("left mouse is down");
-	}
-
-	if (inputManager.isKeyUp('KeyX'))
-	{
-		clearInterval(timer);
-	}
-}
-
-function main()
-{
-	inputManager = new InputManager("btn");
-	runInputManager();
-
-	timer = setInterval("MainLoop()", 100);
 }

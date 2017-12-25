@@ -26,7 +26,8 @@
         cancelAnimationFrame(MainLoopTimerID);
     }
 
-    var timeStep=1/60, camera, scene, renderer, geometry, material, mesh;
+    var timeStep = 1 / 60, camera, scene, renderer;
+    var spawners = [];
 
     var initThree = function() 
     {
@@ -49,6 +50,7 @@
         scene.add( camera );
 
         BuildLevel();
+        PlaceSpawners();
     }
 
     var BuildLevel = function ()
@@ -56,17 +58,20 @@
         var pointLight = new THREE.DirectionalLight(0xFFFFFF);
         var pointLight1 = new THREE.DirectionalLight(0xFFFFFF);
 
-        // set its position
-        pointLight.position.x = -200;
-        pointLight.position.y = 550;
-        pointLight.position.z = 300;
+        pointLight.castShadow = true;
+        pointLight1.castShadow = true;
 
-        pointLight1.position.x = 200;
-        pointLight1.position.y = 550;
-        pointLight1.position.z = 300;
+        // set its position
+        pointLight.position.x = -100;
+        pointLight.position.y = 450;
+        pointLight.position.z = 200;
+
+        pointLight1.position.x = 100;
+        pointLight1.position.y = 350;
+        pointLight1.position.z = 200;
 
         // add to the scene
-        scene.add(pointLight);
+       // scene.add(pointLight);
         scene.add(pointLight1);
 
         var back = new THREE.CubeGeometry(100, 50, 3);
@@ -111,13 +116,125 @@
         scene.add(groundMesh);
     }
 
-    var animate = function() 
+    var PlaceSpawners = function ()
+    {
+        var spawner = new THREE.CubeGeometry(15, 3, 15);
+        var spawnerMat = new THREE.MeshStandardMaterial({ color: 0x0000ff, wireframe: false });
+        var spawnerMesh = new THREE.Mesh(spawner, spawnerMat);
+
+        spawnerMesh.position.y = -23;
+        spawnerMesh.position.x = -41;
+
+        spawnerMesh.castShadow = true;
+        spawnerMesh.receiveShadow = true;
+
+        var spawner1 = new THREE.CubeGeometry(15, 3, 15);
+        var spawnerMat1 = new THREE.MeshStandardMaterial({ color: 0xff0000, wireframe: false });
+        var spawnerMesh1 = new THREE.Mesh(spawner1, spawnerMat1);
+
+        spawnerMesh1.position.y = -23;
+        spawnerMesh1.position.x = 41;
+
+        spawnerMesh1.castShadow = true;
+        spawnerMesh1.receiveShadow = true;
+
+        spawners.push(spawnerMesh);
+        spawners.push(spawnerMesh1);
+
+        scene.add(spawnerMesh);
+        scene.add(spawnerMesh1);
+    }
+    var raycaster = new THREE.Raycaster();
+    var selectedSpawner = null;
+    var CheckIntersection = function ()
+    {
+        var mousePos = InputManager.getMousePos();
+        var x = (mousePos[0] / (width / 2.0));
+        var y = (mousePos[1] / (height / 2.0));
+        var mp = new THREE.Vector2(x, y);
+
+        raycaster.setFromCamera(mp, camera);
+        //console.log( x);
+        if (InputManager.isButtonUp(0)) 
+        {
+            var intersects = raycaster.intersectObjects(spawners);
+
+            if (intersects.length > 0)
+            {
+                selectedSpawner = intersects[0].object;
+                console.log(selectedSpawner);
+            }
+        }
+    }
+
+    var copy = null;
+    var oldMousePos = [0, 0];
+    var PlaceCopy = function ()
+    {
+        if (selectedSpawner != null && copy == null)
+        {
+            var c = new THREE.CubeGeometry(15, 3, 5);
+            var cMat = new THREE.MeshStandardMaterial({ color: selectedSpawner.material.color, wireframe: false });
+
+            copy = new THREE.Mesh(c, cMat);
+
+            copy.position.x = selectedSpawner.position.x;
+            copy.position.y = selectedSpawner.position.y;
+            copy.position.z = selectedSpawner.position.z;
+            oldMousePos = InputManager.getMousePos();
+            scene.add(copy);
+        }
+
+        if (copy != null)
+        {
+            var mousePos = InputManager.getMousePos();
+
+            if (oldMousePos[0] != mousePos[0])
+            {
+                if (oldMousePos[0] > mousePos[0])
+                {
+                    copy.position.x -= (oldMousePos[0] - mousePos[0]) / 7;
+                }
+                else
+                {
+                    copy.position.x += (mousePos[0] - oldMousePos[0]) / 7;
+                }
+            }
+
+            if (oldMousePos[1] != mousePos[1])
+            {
+                if (oldMousePos[1] > mousePos[1])
+                {
+                    copy.position.z += ((oldMousePos[1] - mousePos[1]) / 5);
+                }
+                else
+                {
+                    copy.position.z -= (mousePos[1] - oldMousePos[1]) / 5;
+                }
+            }
+
+            oldMousePos = mousePos;
+        }
+
+        if (InputManager.isButtonUp(1) && copy != null)
+        {
+            copy = null;
+            selectedSpawner = null;
+        }
+    }
+
+    var animate = function () 
     {
         render();
     }
 
     var render = function() 
     {
-        renderer.render( scene, camera );
+        CheckIntersection();
+        if (selectedSpawner != null)
+        {
+            PlaceCopy();
+        }
+        renderer.render(scene, camera);
     }
 }
